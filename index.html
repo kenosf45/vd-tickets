@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Tickets · Vision Digital</title>
+  <meta name="description" content="Log client requests for Vision Digital.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="VD Tickets">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <p class="eyebrow">Vision Digital</p>
+        <h1 id="viewTitle">Tickets</h1>
+      </div>
+      <span class="header-meta" id="headerMeta"></span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tickets -->
+    <section class="view" id="ticketsView">
+      <div class="segmented" role="tablist" aria-label="Ticket status">
+        <button type="button" role="tab" data-status="open" aria-selected="true">Open <span class="seg-count" id="openCount">0</span></button>
+        <button type="button" role="tab" data-status="done" aria-selected="false">Done <span class="seg-count" id="doneCount">0</span></button>
+      </div>
+      <div class="chip-row" id="clientFilter" aria-label="Filter by client"></div>
+      <div id="ticketList"></div>
+    </section>
+
+    <!-- Clients -->
+    <section class="view" id="clientsView" hidden>
+      <button type="button" class="add-btn" id="addClientBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Add client
+      </button>
+      <div id="clientList"></div>
+
+      <h2 class="section-label"><span>Backup</span></h2>
+      <div class="group">
+        <button type="button" class="group-row simple" id="exportBtn">
+          <span class="row-title">Export backup</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <label class="group-row simple" for="importInput">
+          <span class="row-title">Restore from backup</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </label>
+      </div>
+      <input type="file" id="importInput" accept="application/json,.json" hidden>
+      <p class="footnote">Your tickets are saved on this phone. Export a backup now and then so nothing gets lost.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Main">
+    <div class="tabbar-inner">
+      <button type="button" class="tab is-active" data-view="tickets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="M15 6.5v1.5M15 11.25v1.5M15 16v1.5"/></svg>
+        Tickets
+      </button>
+      <button type="button" class="fab" id="newTicketBtn" aria-label="New ticket">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button type="button" class="tab" data-view="clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.6c1.9.6 3.1 2.2 3.5 4.9"/></svg>
+        Clients
+      </button>
+    </div>
+  </nav>
+
+  <!-- New / edit ticket -->
+  <div class="sheet-layer" id="ticketSheet" hidden>
+    <div class="backdrop" data-close></div>
+    <form class="sheet" id="ticketForm" role="dialog" aria-modal="true" aria-labelledby="ticketSheetTitle" novalidate>
+      <div class="sheet-header">
+        <span class="grabber" aria-hidden="true"></span>
+        <button type="button" class="text-btn" data-close>Cancel</button>
+        <h2 id="ticketSheetTitle">New Ticket</h2>
+        <button type="submit" class="text-btn strong" id="ticketSaveBtn" disabled>Save</button>
+      </div>
+      <div class="sheet-body">
+        <label class="field-label" for="clientInput">Client</label>
+        <div class="input-wrap">
+          <span class="color-dot is-empty" id="clientDot"></span>
+          <input id="clientInput" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Client name" enterkeyhint="next">
+        </div>
+        <p class="hint" id="clientHint"></p>
+        <div class="chip-wrap" id="clientChoices"></div>
+
+        <label class="field-label" for="taskInput">Request</label>
+        <textarea id="taskInput" rows="4" placeholder="What did they ask you to do?"></textarea>
+
+        <span class="field-label">Due date <span class="optional">Optional</span></span>
+        <div class="chip-wrap" id="dueQuick">
+          <button type="button" class="chip" data-due="none">None</button>
+          <button type="button" class="chip" data-due="0">Today</button>
+          <button type="button" class="chip" data-due="1">Tomorrow</button>
+          <button type="button" class="chip" data-due="7">Next week</button>
+        </div>
+        <label class="date-field" id="dueField">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+          <span id="dueDisplay">Pick a date</span>
+          <input type="date" id="dueInput" aria-label="Due date">
+        </label>
+
+        <p class="stamp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+          <span id="ticketStamp"></span>
+        </p>
+
+        <div class="sheet-actions" id="ticketActions">
+          <button type="button" class="action-btn" id="toggleDoneBtn">Mark as done</button>
+          <button type="button" class="action-btn danger" id="deleteTicketBtn">Delete ticket</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- New / edit client -->
+  <div class="sheet-layer" id="clientSheet" hidden>
+    <div class="backdrop" data-close></div>
+    <form class="sheet" id="clientForm" role="dialog" aria-modal="true" aria-labelledby="clientSheetTitle" novalidate>
+      <div class="sheet-header">
+        <span class="grabber" aria-hidden="true"></span>
+        <button type="button" class="text-btn" data-close>Cancel</button>
+        <h2 id="clientSheetTitle">New Client</h2>
+        <button type="submit" class="text-btn strong" id="clientSaveBtn" disabled>Save</button>
+      </div>
+      <div class="sheet-body">
+        <div class="client-preview"><span class="avatar avatar-lg" id="clientAvatar">?</span></div>
+
+        <label class="field-label" for="clientNameInput">Name</label>
+        <div class="input-wrap">
+          <input id="clientNameInput" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Client name" enterkeyhint="done">
+        </div>
+        <p class="hint error" id="clientNameError"></p>
+
+        <span class="field-label">Color</span>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Client color"></div>
+
+        <div class="sheet-actions" id="clientActions">
+          <button type="button" class="action-btn" id="viewClientTicketsBtn">View tickets</button>
+          <button type="button" class="action-btn danger" id="deleteClientBtn">Delete client</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastText"></span>
+    <button type="button" id="toastAction" hidden>Undo</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
